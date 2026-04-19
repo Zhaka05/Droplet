@@ -68,6 +68,40 @@ function TriangleVisual({ activeProbes }) {
   )
 }
 
+const MODELS = ['Uno', 'Dos', 'Tres']
+
+function AddDeviceModal({ onSave, onClose }) {
+  const [name, setName] = useState('')
+  const [location, setLocation] = useState('')
+  const [model, setModel] = useState('Tres')
+
+  const canSave = name.trim() && location.trim()
+
+  return (
+    <div style={modal.overlay} onClick={onClose}>
+      <div style={modal.card} onClick={e => e.stopPropagation()}>
+        <p style={modal.title}>Add Device</p>
+        <label style={modal.label}>Device Name</label>
+        <input style={modal.input} placeholder="e.g. Droplet Sensor #2" value={name} onChange={e => setName(e.target.value)} />
+        <label style={modal.label}>Location</label>
+        <input style={modal.input} placeholder="e.g. Bathroom Drain" value={location} onChange={e => setLocation(e.target.value)} />
+        <label style={modal.label}>Model</label>
+        <select style={modal.select} value={model} onChange={e => setModel(e.target.value)}>
+          {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <button
+          style={{ ...modal.saveBtn, opacity: canSave ? 1 : 0.5, cursor: canSave ? 'pointer' : 'not-allowed' }}
+          disabled={!canSave}
+          onClick={() => onSave({ name: name.trim(), location: location.trim(), model })}
+        >
+          Add Device
+        </button>
+        <button style={modal.cancelBtnFull} onClick={onClose}>Cancel</button>
+      </div>
+    </div>
+  )
+}
+
 function EditModal({ device, onSave, onDelete, onClose }) {
   const [name, setName] = useState(device.name)
   const [location, setLocation] = useState(device.location)
@@ -103,9 +137,11 @@ function EditModal({ device, onSave, onDelete, onClose }) {
 
 export default function DevicesPage() {
   const sensor = useContext(SensorContext)
-  const [buzzerOn, setBuzzerOn] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [device, setDevice] = useState({ name: 'Droplet Sensor #1', location: 'Kitchen Drain' })
+  const [addingDevice, setAddingDevice] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [devices, setDevices] = useState([
+    { id: 1, name: 'Droplet Sensor #1', location: 'Kitchen Drain', model: 'Tres', buzzerOn: true },
+  ])
 
   const probeRows = [
     { count: 0, label: 'Off', sub: 'No water detected', color: '#99b8c4' },
@@ -121,56 +157,73 @@ export default function DevicesPage() {
           <h2 style={styles.title}>Devices</h2>
           <p style={styles.subtitle}>Manage your drain sensors</p>
         </div>
-        <button style={styles.addBtn}>+ Add Device</button>
+        <button style={styles.addBtn} onClick={() => setAddingDevice(true)}>+ Add Device</button>
       </div>
 
-      {/* Device card */}
-      <div style={styles.deviceCard}>
-        <div style={styles.deviceHeader}>
-          <div>
-            <p style={styles.deviceName}>{device.name}</p>
-            <p style={styles.deviceSub}>{device.location}</p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              ...styles.statusPill,
-              background: sensor.wsConnected ? '#edfff2' : '#fff4e5',
-            }}>
-              <div style={{ ...styles.statusDot, background: sensor.wsConnected ? '#4cd964' : '#ff9800' }} />
-              <span style={{ ...styles.statusText, color: sensor.wsConnected ? '#2da84f' : '#e08800' }}>
-                {sensor.wsConnected ? 'Live' : 'Connecting…'}
-              </span>
+      {/* Device cards */}
+      {devices.map((device, idx) => (
+        <div key={device.id} style={styles.deviceCard}>
+          <div style={styles.deviceHeader}>
+            <div>
+              <p style={styles.deviceName}>{device.name}</p>
+              <p style={styles.deviceSub}>{device.location}</p>
             </div>
-            <button style={styles.editIconBtn} onClick={() => setEditing(true)}>✏️</button>
-          </div>
-        </div>
-        <div style={styles.deviceStats}>
-          <div style={styles.stat}>
-            <Wifi size={16} color="#4ab8e8" />
-            <span style={styles.statVal}>WiFi</span>
-          </div>
-          <div style={styles.stat}>
-            <span style={styles.statLabel}>Model:</span>
-            <span style={styles.statVal}>Tres</span>
-          </div>
-          <div style={styles.stat}>
-            <span style={styles.statLabel}>Buzzer:</span>
-            <div
-              style={{ ...styles.toggleTrack, background: buzzerOn ? '#4ab8e8' : '#dde8ee' }}
-              onClick={() => setBuzzerOn(v => !v)}
-            >
-              <div style={{ ...styles.toggleKnob, transform: buzzerOn ? 'translateX(18px)' : 'translateX(2px)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                ...styles.statusPill,
+                background: idx === 0 && sensor.wsConnected ? '#edfff2' : '#fff4e5',
+              }}>
+                <div style={{ ...styles.statusDot, background: idx === 0 && sensor.wsConnected ? '#4cd964' : '#ff9800' }} />
+                <span style={{ ...styles.statusText, color: idx === 0 && sensor.wsConnected ? '#2da84f' : '#e08800' }}>
+                  {idx === 0 && sensor.wsConnected ? 'Live' : 'Connecting…'}
+                </span>
+              </div>
+              <button style={styles.editIconBtn} onClick={() => setEditingId(device.id)}>✏️</button>
             </div>
           </div>
+          <div style={styles.deviceStats}>
+            <div style={styles.stat}>
+              <Wifi size={16} color="#4ab8e8" />
+              <span style={styles.statVal}>WiFi</span>
+            </div>
+            <div style={styles.stat}>
+              <span style={styles.statLabel}>Model:</span>
+              <span style={styles.statVal}>{device.model}</span>
+            </div>
+            <div style={styles.stat}>
+              <span style={styles.statLabel}>Buzzer:</span>
+              <div
+                style={{ ...styles.toggleTrack, background: device.buzzerOn ? '#4ab8e8' : '#dde8ee' }}
+                onClick={() => setDevices(ds => ds.map(d => d.id === device.id ? { ...d, buzzerOn: !d.buzzerOn } : d))}
+              >
+                <div style={{ ...styles.toggleKnob, transform: device.buzzerOn ? 'translateX(18px)' : 'translateX(2px)' }} />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      ))}
 
-      {editing && (
+      {editingId !== null && (
         <EditModal
-          device={device}
-          onSave={(name, location) => { setDevice({ name, location }); setEditing(false) }}
-          onDelete={() => { setDevice({ name: 'Droplet Sensor #1', location: 'Kitchen Drain' }); setEditing(false) }}
-          onClose={() => setEditing(false)}
+          device={devices.find(d => d.id === editingId)}
+          onSave={(name, location) => {
+            setDevices(ds => ds.map(d => d.id === editingId ? { ...d, name, location } : d))
+            setEditingId(null)
+          }}
+          onDelete={() => {
+            setDevices(ds => ds.filter(d => d.id !== editingId))
+            setEditingId(null)
+          }}
+          onClose={() => setEditingId(null)}
+        />
+      )}
+      {addingDevice && (
+        <AddDeviceModal
+          onSave={(d) => {
+            setDevices(ds => [...ds, { ...d, id: Date.now(), buzzerOn: true }])
+            setAddingDevice(false)
+          }}
+          onClose={() => setAddingDevice(false)}
         />
       )}
 
@@ -336,8 +389,19 @@ const modal = {
     cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
   },
   btnRow: { display: 'flex', gap: 10, marginTop: 8 },
+  select: {
+    width: '100%', padding: '10px 14px', borderRadius: 12,
+    border: '1.5px solid #d8eef6', fontSize: 14, color: '#1a3a4a',
+    fontFamily: 'Poppins, sans-serif', outline: 'none',
+    background: '#fff', marginBottom: 4, cursor: 'pointer',
+  },
   cancelBtn: {
     flex: 1, background: '#f0f9ff', color: '#4a7a8a', border: 'none',
+    borderRadius: 20, padding: '12px', fontSize: 14, fontWeight: 600,
+    cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
+  },
+  cancelBtnFull: {
+    width: '100%', background: '#f0f9ff', color: '#4a7a8a', border: 'none',
     borderRadius: 20, padding: '12px', fontSize: 14, fontWeight: 600,
     cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
   },
