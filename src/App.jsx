@@ -12,7 +12,7 @@ export const UserContext = createContext(null)
 
 export default function App() {
   const [tab, setTab] = useState('home')
-  const [user, setUser] = useState({ name: 'Michael Jackson', dailyGoal: 20 })
+  const [user, setUser] = useState({ name: 'Steven Le', dailyGoal: 20 })
   const sensor = useSensorStore()
   const [clock, setClock] = useState(() =>
     new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })

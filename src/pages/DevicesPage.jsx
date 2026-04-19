@@ -140,7 +140,7 @@ export default function DevicesPage() {
   const [addingDevice, setAddingDevice] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [devices, setDevices] = useState([
-    { id: 1, name: 'Droplet Sensor #1', location: 'Kitchen Drain', model: 'Tres', buzzerOn: true },
+    { id: 1, name: "Quinxie's Sink", location: 'Bathroom Sink', model: 'Tres', buzzerOn: true },
   ])
 
   const probeRows = [

@@ -75,10 +75,11 @@ export default function HomePage() {
       </div>
 
       {/* Recent sessions */}
-      {sensor.sessions.length > 0 && (
-        <div style={styles.section}>
-          <p style={styles.sectionTitle}>Recent Sessions</p>
-          {sensor.sessions.slice(0, 4).map(s => (
+      <div style={styles.section}>
+        <p style={styles.sectionTitle}>Recent Sessions</p>
+        {sensor.sessions.length === 0
+          ? <p style={styles.emptyText}>No sessions yet today.</p>
+          : sensor.sessions.slice(0, 4).map(s => (
             <div key={s.id} style={styles.sessionRow}>
               <div style={{ flex: 1 }}>
                 <p style={styles.rowTime}>{s.time}</p>
@@ -89,9 +90,9 @@ export default function HomePage() {
               </div>
               <p style={styles.rowGallons}>{s.gallons.toFixed(3)} gal</p>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        }
+      </div>
     </div>
   )
 }
@@ -147,6 +148,7 @@ const styles = {
   progressBar: { height: 6, background: '#e8f4f8', borderRadius: 3, marginTop: 8, overflow: 'hidden' },
   progressFill: { height: '100%', background: 'linear-gradient(90deg,#4ab8e8,#29b6f6)', borderRadius: 3, transition: 'width 0.5s' },
   section: { background: '#fff', borderRadius: 20, padding: '16px 18px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
+  emptyText: { fontSize: 13, color: '#b0cdd6', textAlign: 'center', padding: '12px 0' },
   sectionTitle: { fontSize: 14, fontWeight: 600, color: '#1a3a4a', marginBottom: 12 },
   sessionRow: { display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #f0f7fa' },
   flowBadge: { borderRadius: 8, padding: '4px 10px', fontSize: 11, fontWeight: 600 },
