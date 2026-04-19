@@ -2,7 +2,7 @@ import { Home, Target, Cpu, User } from './Icons'
 
 const tabs = [
   { id: 'home', label: 'Home', Icon: Home },
-  { id: 'goals', label: 'Goals', Icon: Target },
+  { id: 'goals', label: 'Limit', Icon: Target },
   { id: 'devices', label: 'Devices', Icon: Cpu },
   { id: 'profile', label: 'Profile', Icon: User },
 ]

@@ -33,7 +33,7 @@ export default function GoalsPage() {
 
   return (
     <div style={styles.page}>
-      <h2 style={styles.title}>Set Your Goal</h2>
+      <h2 style={styles.title}>Set Your Limit</h2>
       <p style={styles.subtitle}>Track your daily water waste limit</p>
 
       {/* Goal input */}
@@ -50,7 +50,7 @@ export default function GoalsPage() {
         </div>
         <div style={styles.divider} />
         <p style={styles.templateLabel}>Water Goal Templates</p>
-        <p style={styles.templateSub}>We prepared common goals for you!</p>
+        <p style={styles.templateSub}>We prepared common limits for you!</p>
         <div style={styles.templateGrid}>
           {templates.map(t => (
             <button
@@ -75,7 +75,7 @@ export default function GoalsPage() {
         style={{ ...styles.saveBtn, background: saved ? '#4cd964' : 'linear-gradient(135deg,#4ab8e8,#29b6f6)' }}
         onClick={() => saveGoal(inputVal)}
       >
-        {saved ? '✓ Saved!' : 'Save Goal'}
+        {saved ? '✓ Saved!' : 'Save Limit'}
       </button>
 
       {/* Today's progress */}
@@ -95,16 +95,16 @@ export default function GoalsPage() {
         </div>
         <div style={styles.progressStats}>
           <p style={styles.statText}>{used.toFixed(2)} gal used</p>
-          <p style={styles.statText}>{user.dailyGoal} gal goal</p>
+          <p style={styles.statText}>{user.dailyGoal} gal limit</p>
         </div>
         <p style={{
           ...styles.statusMsg,
           color: status === 'good' ? '#4ab8e8' : status === 'warning' ? '#e08800' : '#e05252'
         }}>
           {status === 'exceeded'
-            ? `⚠ You've exceeded your goal by ${(used - user.dailyGoal).toFixed(2)} gal`
+            ? `⚠ You've exceeded your limit by ${(used - user.dailyGoal).toFixed(2)} gal`
             : status === 'warning'
-            ? `You're at ${pct.toFixed(0)}% of your goal — be mindful!`
+            ? `You're at ${pct.toFixed(0)}% of your limit — be mindful!`
             : `Great! You're at ${pct.toFixed(0)}% of your daily limit.`}
         </p>
       </div>

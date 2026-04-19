@@ -1,4 +1,4 @@
-import { useState, createContext, useContext } from 'react'
+import { useState, useEffect, createContext, useContext } from 'react'
 import { useSensorStore } from './store/useSensorStore'
 import NavBar from './components/NavBar'
 import HomePage from './pages/HomePage'
@@ -14,6 +14,15 @@ export default function App() {
   const [tab, setTab] = useState('home')
   const [user, setUser] = useState({ name: 'Aashifa Sheikh', dailyGoal: 20 })
   const sensor = useSensorStore()
+  const [clock, setClock] = useState(() =>
+    new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  )
+  useEffect(() => {
+    const id = setInterval(() =>
+      setClock(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }))
+    , 1000)
+    return () => clearInterval(id)
+  }, [])
 
   const pages = { home: HomePage, goals: GoalsPage, devices: DevicesPage, profile: ProfilePage }
   const Page = pages[tab]
@@ -23,7 +32,7 @@ export default function App() {
       <SensorContext.Provider value={sensor}>
         <div style={styles.phone}>
           <div style={styles.statusBar}>
-            <span style={styles.time}>9:41</span>
+            <span style={styles.time}>{clock}</span>
             <span style={styles.icons}>▲ WiFi ▮</span>
           </div>
           <div style={styles.content}>
@@ -66,5 +75,6 @@ const styles = {
     overflowY: 'auto',
     overflowX: 'hidden',
     paddingBottom: 8,
+    scrollbarWidth: 'none',
   },
 }

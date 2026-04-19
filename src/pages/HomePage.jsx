@@ -60,14 +60,14 @@ export default function HomePage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <WaterFill percent={progressPct} size={120} />
           <div>
-            <p style={styles.goalTitle}>Daily Goal</p>
+            <p style={styles.goalTitle}>Daily Limit</p>
             <p style={styles.goalSub}>Used {sensor.todayGallons.toFixed(2)} of {user.dailyGoal} gal</p>
             <div style={styles.progressBar}>
               <div style={{ ...styles.progressFill, width: `${progressPct}%` }} />
             </div>
             <p style={{ ...styles.goalSub, marginTop: 6 }}>
               {progressPct >= 100
-                ? '⚠ Goal exceeded!'
+                ? '⚠ Limit exceeded!'
                 : `${(user.dailyGoal - sensor.todayGallons).toFixed(2)} gal remaining`}
             </p>
           </div>
@@ -80,12 +80,12 @@ export default function HomePage() {
           <p style={styles.sectionTitle}>Recent Sessions</p>
           {sensor.sessions.slice(0, 4).map(s => (
             <div key={s.id} style={styles.sessionRow}>
-              <div style={{ ...styles.flowBadge, background: FLOW_COLORS[s.flowLabel] + '22', color: FLOW_COLORS[s.flowLabel] }}>
-                {s.flowLabel}
-              </div>
               <div style={{ flex: 1 }}>
                 <p style={styles.rowTime}>{s.time}</p>
                 <p style={styles.rowSub}>{fmt(s.seconds)} duration</p>
+              </div>
+              <div style={{ ...styles.flowBadge, background: FLOW_COLORS[s.flowLabel] + '22', color: FLOW_COLORS[s.flowLabel] }}>
+                {s.flowLabel}
               </div>
               <p style={styles.rowGallons}>{s.gallons.toFixed(3)} gal</p>
             </div>

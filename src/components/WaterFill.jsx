@@ -43,7 +43,7 @@ export default function WaterFill({ percent, size = 160 }) {
           {clamp.toFixed(0)}%
         </span>
         <span style={{ fontSize: size * 0.09, color: clamp > 55 ? '#e0f4ff' : '#7ab8d4', fontWeight: 500 }}>
-          of goal
+          of limit
         </span>
       </div>
     </div>

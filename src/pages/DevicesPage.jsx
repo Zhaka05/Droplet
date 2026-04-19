@@ -23,9 +23,9 @@ function ProbeButton({ active, onClick, label }) {
 
 function TriangleVisual({ activeProbes }) {
   const positions = [
-    { x: 80, y: 20, label: 'A' },
-    { x: 140, y: 120, label: 'B' },
-    { x: 20, y: 120, label: 'C' },
+    { x: 80, y: 20, label: '1' },
+    { x: 140, y: 120, label: '2' },
+    { x: 20, y: 120, label: '3' },
   ]
   return (
     <svg width={160} height={160} viewBox="0 0 160 160">
@@ -80,8 +80,13 @@ export default function DevicesPage() {
 
   return (
     <div style={styles.page}>
-      <h2 style={styles.title}>Devices</h2>
-      <p style={styles.subtitle}>Manage your drain sensors</p>
+      <div style={styles.pageHeader}>
+        <div>
+          <h2 style={styles.title}>Devices</h2>
+          <p style={styles.subtitle}>Manage your drain sensors</p>
+        </div>
+        <button style={styles.addBtn}>+ Add Device</button>
+      </div>
 
       {/* Device card */}
       <div style={styles.deviceCard}>
@@ -182,8 +187,17 @@ export default function DevicesPage() {
 
 const styles = {
   page: { padding: '16px 20px 24px' },
+  pageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   title: { fontSize: 22, fontWeight: 700, color: '#1a3a4a', marginBottom: 2 },
-  subtitle: { fontSize: 13, color: '#88aab8', marginBottom: 20 },
+  subtitle: { fontSize: 13, color: '#88aab8' },
+  addBtn: {
+    background: 'linear-gradient(135deg,#4ab8e8,#29b6f6)',
+    color: '#fff', border: 'none', borderRadius: 20,
+    padding: '8px 16px', fontSize: 13, fontWeight: 600,
+    cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
+    boxShadow: '0 4px 12px rgba(74,184,232,0.4)',
+    whiteSpace: 'nowrap',
+  },
   deviceCard: { background: '#fff', borderRadius: 20, padding: '18px', marginBottom: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
   deviceHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
   deviceName: { fontSize: 16, fontWeight: 600, color: '#1a3a4a' },

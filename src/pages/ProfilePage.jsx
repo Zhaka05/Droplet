@@ -52,7 +52,7 @@ export default function ProfilePage() {
             <button style={styles.editBtn} onClick={() => setEditing(true)}>Edit</button>
           </div>
         )}
-        <p style={styles.goal}>Daily goal: {user.dailyGoal} gal/day</p>
+        <p style={styles.goal}>Daily limit: {user.dailyGoal} gal/day</p>
       </div>
 
       {/* Stats */}
@@ -75,7 +75,7 @@ export default function ProfilePage() {
         <p style={styles.sectionTitle}>Settings</p>
         {[
           { icon: '🔔', label: 'Buzzer Notifications', sub: 'Alert at 60s continuous use', toggle: true, val: true },
-          { icon: '🎯', label: 'Goal Reminders', sub: 'Daily progress nudges', toggle: true, val: false },
+          { icon: '🎯', label: 'Limit Reminders', sub: 'Daily progress nudges', toggle: true, val: false },
           { icon: '📊', label: 'Weekly Report', sub: 'Sunday summary email', toggle: true, val: true },
         ].map((item, i) => (
           <div key={i} style={styles.settingRow}>
