@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import { SensorContext } from '../App'
 import { Wifi } from '../components/Icons'
 
@@ -68,8 +68,44 @@ function TriangleVisual({ activeProbes }) {
   )
 }
 
+function EditModal({ device, onSave, onDelete, onClose }) {
+  const [name, setName] = useState(device.name)
+  const [location, setLocation] = useState(device.location)
+  const [confirming, setConfirming] = useState(false)
+
+  return (
+    <div style={modal.overlay} onClick={onClose}>
+      <div style={modal.card} onClick={e => e.stopPropagation()}>
+        {confirming ? (
+          <>
+            <p style={modal.title}>Delete Device?</p>
+            <p style={modal.sub}>This will remove <strong>{device.name}</strong> permanently.</p>
+            <div style={modal.btnRow}>
+              <button style={modal.cancelBtn} onClick={() => setConfirming(false)}>Cancel</button>
+              <button style={modal.deleteConfirmBtn} onClick={onDelete}>Yes, Delete</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p style={modal.title}>Edit Device</p>
+            <label style={modal.label}>Name</label>
+            <input style={modal.input} value={name} onChange={e => setName(e.target.value)} />
+            <label style={modal.label}>Location</label>
+            <input style={modal.input} value={location} onChange={e => setLocation(e.target.value)} />
+            <button style={modal.saveBtn} onClick={() => onSave(name, location)}>Save Changes</button>
+            <button style={modal.deleteBtn} onClick={() => setConfirming(true)}>Delete Device</button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function DevicesPage() {
   const sensor = useContext(SensorContext)
+  const [buzzerOn, setBuzzerOn] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [device, setDevice] = useState({ name: 'Droplet Sensor #1', location: 'Kitchen Drain' })
 
   const probeRows = [
     { count: 0, label: 'Off', sub: 'No water detected', color: '#99b8c4' },
@@ -92,34 +128,51 @@ export default function DevicesPage() {
       <div style={styles.deviceCard}>
         <div style={styles.deviceHeader}>
           <div>
-            <p style={styles.deviceName}>Droplet Sensor #1</p>
-            <p style={styles.deviceSub}>Kitchen Drain · Arduino Uno</p>
+            <p style={styles.deviceName}>{device.name}</p>
+            <p style={styles.deviceSub}>{device.location}</p>
           </div>
-          <div style={{
-            ...styles.statusPill,
-            background: sensor.wsConnected ? '#edfff2' : '#fff4e5',
-          }}>
-            <div style={{ ...styles.statusDot, background: sensor.wsConnected ? '#4cd964' : '#ff9800' }} />
-            <span style={{ ...styles.statusText, color: sensor.wsConnected ? '#2da84f' : '#e08800' }}>
-              {sensor.wsConnected ? 'Live' : 'Connecting…'}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              ...styles.statusPill,
+              background: sensor.wsConnected ? '#edfff2' : '#fff4e5',
+            }}>
+              <div style={{ ...styles.statusDot, background: sensor.wsConnected ? '#4cd964' : '#ff9800' }} />
+              <span style={{ ...styles.statusText, color: sensor.wsConnected ? '#2da84f' : '#e08800' }}>
+                {sensor.wsConnected ? 'Live' : 'Connecting…'}
+              </span>
+            </div>
+            <button style={styles.editIconBtn} onClick={() => setEditing(true)}>✏️</button>
           </div>
         </div>
         <div style={styles.deviceStats}>
           <div style={styles.stat}>
             <Wifi size={16} color="#4ab8e8" />
-            <span style={styles.statVal}>USB Serial</span>
+            <span style={styles.statVal}>WiFi</span>
           </div>
           <div style={styles.stat}>
-            <span style={styles.statLabel}>Probes:</span>
-            <span style={styles.statVal}>3 (triangle)</span>
+            <span style={styles.statLabel}>Model:</span>
+            <span style={styles.statVal}>Tres</span>
           </div>
           <div style={styles.stat}>
-            <span style={styles.statLabel}>Buzzer pin:</span>
-            <span style={styles.statVal}>D8</span>
+            <span style={styles.statLabel}>Buzzer:</span>
+            <div
+              style={{ ...styles.toggleTrack, background: buzzerOn ? '#4ab8e8' : '#dde8ee' }}
+              onClick={() => setBuzzerOn(v => !v)}
+            >
+              <div style={{ ...styles.toggleKnob, transform: buzzerOn ? 'translateX(18px)' : 'translateX(2px)' }} />
+            </div>
           </div>
         </div>
       </div>
+
+      {editing && (
+        <EditModal
+          device={device}
+          onSave={(name, location) => { setDevice({ name, location }); setEditing(false) }}
+          onDelete={() => { setDevice({ name: 'Droplet Sensor #1', location: 'Kitchen Drain' }); setEditing(false) }}
+          onClose={() => setEditing(false)}
+        />
+      )}
 
       {/* Triangle visual */}
       <div style={styles.vizCard}>
@@ -134,7 +187,7 @@ export default function DevicesPage() {
       </div>
 
       {/* Simulate sensor */}
-      <div style={{ ...styles.simCard, opacity: sensor.wsConnected ? 0.5 : 1 }}>
+      <div style={styles.simCard}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
           <p style={styles.simTitle}>Simulate Sensor Input</p>
           {sensor.wsConnected && <span style={styles.lockedBadge}>🔒 Live sensor active</span>}
@@ -205,10 +258,23 @@ const styles = {
   statusPill: { display: 'flex', alignItems: 'center', gap: 6, background: '#edfff2', borderRadius: 20, padding: '4px 12px' },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontSize: 12, fontWeight: 600, color: '#2da84f' },
-  deviceStats: { display: 'flex', gap: 16 },
-  stat: { display: 'flex', alignItems: 'center', gap: 4 },
-  statLabel: { fontSize: 11, color: '#99b8c4' },
-  statVal: { fontSize: 12, fontWeight: 500, color: '#4a7a8a' },
+  editIconBtn: {
+    background: '#f0f9ff', border: 'none', borderRadius: 10,
+    padding: '5px 8px', cursor: 'pointer', fontSize: 14,
+  },
+  deviceStats: { display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'space-between' },
+  stat: { display: 'flex', alignItems: 'center', gap: 4, lineHeight: 1 },
+  statLabel: { fontSize: 11, color: '#99b8c4', lineHeight: 1 },
+  statVal: { fontSize: 12, fontWeight: 500, color: '#4a7a8a', lineHeight: 1 },
+  toggleTrack: {
+    width: 38, height: 22, borderRadius: 11, cursor: 'pointer',
+    position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+  },
+  toggleKnob: {
+    position: 'absolute', top: 3, width: 16, height: 16,
+    borderRadius: 8, background: '#fff', transition: 'transform 0.2s',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+  },
   vizCard: { background: '#fff', borderRadius: 20, padding: '18px', marginBottom: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
   vizTitle: { fontSize: 15, fontWeight: 600, color: '#1a3a4a', marginBottom: 3 },
   vizSub: { fontSize: 12, color: '#88aab8', marginBottom: 14 },
@@ -233,4 +299,52 @@ const styles = {
   miniDot: { width: 10, height: 10, borderRadius: 5 },
   refLabel: { flex: 1, fontSize: 13, color: '#4a6a7a', fontWeight: 500 },
   refRate: { fontSize: 13, fontWeight: 700 },
+}
+
+const modal = {
+  overlay: {
+    position: 'absolute', inset: 0,
+    background: 'rgba(0,0,0,0.45)', display: 'flex',
+    alignItems: 'center', justifyContent: 'center',
+    zIndex: 100, backdropFilter: 'blur(4px)',
+  },
+  card: {
+    background: '#fff', borderRadius: 24,
+    padding: '28px 24px', width: 300,
+    display: 'flex', flexDirection: 'column', gap: 10,
+    boxShadow: '0 16px 48px rgba(0,0,0,0.18)',
+  },
+  title: { fontSize: 18, fontWeight: 700, color: '#1a3a4a', marginBottom: 4 },
+  sub: { fontSize: 13, color: '#88aab8', lineHeight: 1.5 },
+  label: { fontSize: 12, color: '#99b8c4', fontWeight: 500 },
+  input: {
+    width: '100%', padding: '10px 14px', borderRadius: 12,
+    border: '1.5px solid #d8eef6', fontSize: 14, color: '#1a3a4a',
+    fontFamily: 'Poppins, sans-serif', outline: 'none',
+    marginBottom: 4,
+  },
+  saveBtn: {
+    background: 'linear-gradient(135deg,#4ab8e8,#29b6f6)',
+    color: '#fff', border: 'none', borderRadius: 20,
+    padding: '12px', fontSize: 14, fontWeight: 600,
+    cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
+    marginTop: 4,
+  },
+  deleteBtn: {
+    background: '#fff0f0', color: '#e05252', border: '1.5px solid #ffd0d0',
+    borderRadius: 20, padding: '12px', fontSize: 14, fontWeight: 600,
+    cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
+  },
+  btnRow: { display: 'flex', gap: 10, marginTop: 8 },
+  cancelBtn: {
+    flex: 1, background: '#f0f9ff', color: '#4a7a8a', border: 'none',
+    borderRadius: 20, padding: '12px', fontSize: 14, fontWeight: 600,
+    cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
+  },
+  deleteConfirmBtn: {
+    flex: 1, background: 'linear-gradient(135deg,#e05252,#ef5350)',
+    color: '#fff', border: 'none', borderRadius: 20,
+    padding: '12px', fontSize: 14, fontWeight: 600,
+    cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
+  },
 }

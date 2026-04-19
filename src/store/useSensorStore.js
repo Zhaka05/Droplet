@@ -29,10 +29,13 @@ export function useSensorStore() {
   const localGallonsRef = useRef(0)
   const localFlowRateRef = useRef(0)
   const wsRef = useRef(null)
+  const isInitialMsg = useRef(true)
 
   // ── WebSocket ──────────────────────────────────────────────────────────────
   const handleWsEvent = useCallback((data) => {
     const type = data.event_type
+    const initial = isInitialMsg.current
+    isInitialMsg.current = false
 
     if (type === 'FLOW_STARTED') {
       setSessionSeconds(0)
@@ -52,7 +55,7 @@ export function useSensorStore() {
     if (type === 'FLOW_STOPPED') {
       const gallons = +(data.gallons ?? 0)
       const seconds = data.duration_seconds ?? 0
-      if (seconds > 0) {
+      if (seconds > 0 && !initial) {
         setSessions(prev => [{
           id: Date.now(),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -87,7 +90,7 @@ export function useSensorStore() {
       const ws = new WebSocket(WS_URL)
       wsRef.current = ws
 
-      ws.onopen = () => { if (!cancelled) setWsConnected(true) }
+      ws.onopen = () => { if (!cancelled) { isInitialMsg.current = true; setWsConnected(true) } }
 
       ws.onmessage = (e) => {
         try { handleWsEvent(JSON.parse(e.data)) } catch (_) {}
