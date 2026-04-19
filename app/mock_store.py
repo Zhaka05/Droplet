@@ -1,4 +1,4 @@
-"""In-memory mock readings. Replace with DB + real sensor ingestion later."""
+"""In-memory readings. Arduino (or any client) POSTs events; optional demo seed."""
 
 from __future__ import annotations
 
@@ -16,43 +16,29 @@ def _midnight_utc(d: date) -> datetime:
     return datetime(d.year, d.month, d.day, tzinfo=UTC)
 
 
-def _build_mock_events() -> List[WasteEvent]:
-    """Deterministic-ish mock: several sinks, usage spread over the last ~45 days."""
-    sinks: List[Tuple[str, str, str | None]] = [
+def _build_demo_events() -> List[WasteEvent]:
+    """A handful of events so the UI is not empty before hardware is connected."""
+    today = date.today()
+    sinks = [
         ("kitchen-main", "Kitchen main", "Kitchen"),
         ("bath-up", "Upstairs bath", "Bathroom"),
-        ("utility", "Utility sink", "Basement"),
     ]
-    rng_seed = 42
     events: List[WasteEvent] = []
-    today = date.today()
-    start = today - timedelta(days=44)
-
-    for day_offset in range(45):
-        d = start + timedelta(days=day_offset)
-        if day_offset % 7 == 0:
-            rng_seed = (rng_seed * 1103515245 + 12345) & 0x7FFFFFFF
-        for sink_id, _, _ in sinks:
-            uses = 1 + (day_offset + hash(sink_id)) % 4
-            for u in range(uses):
-                rng_seed = (rng_seed * 1103515245 + 12345) & 0x7FFFFFFF
-                hour = 7 + (rng_seed % 14)
-                minute = rng_seed % 60
-                second = (rng_seed // 60) % 60
-                at = _midnight_utc(d).replace(hour=hour, minute=minute, second=second)
-                ml = 80.0 + (rng_seed % 420) + (u * 17.0)
-                events.append(
-                    WasteEvent(
-                        id=str(uuid4()),
-                        sink_id=sink_id,
-                        at=at,
-                        volume_ml=round(ml, 1),
-                    )
-                )
+    for i, (sid, _, _) in enumerate(sinks):
+        d = today - timedelta(days=2 - i)
+        at = _midnight_utc(d).replace(hour=8 + i, minute=12, second=0)
+        events.append(
+            WasteEvent(
+                id=str(uuid4()),
+                sink_id=sid,
+                at=at,
+                volume_ml=round(120.0 + i * 85.0, 1),
+            )
+        )
     return events
 
 
-_EVENTS: List[WasteEvent] = _build_mock_events()
+_EVENTS: List[WasteEvent] = _build_demo_events()
 
 _SINKS: List[SinkBase] = [
     SinkBase(id="kitchen-main", name="Kitchen main", location="Kitchen"),
@@ -70,6 +56,39 @@ def get_sink(sink_id: str) -> SinkBase | None:
         if s.id == sink_id:
             return s
     return None
+
+
+def ensure_sink(sink_id: str, name: str | None, location: str | None) -> SinkBase:
+    existing = get_sink(sink_id)
+    if existing:
+        return existing
+    base = SinkBase(
+        id=sink_id,
+        name=name or sink_id.replace("-", " ").title(),
+        location=location,
+    )
+    _SINKS.append(base)
+    return base
+
+
+def add_waste_event(
+    sink_id: str,
+    volume_ml: float,
+    at: datetime | None,
+    sink_name: str | None,
+    location: str | None,
+) -> WasteEvent:
+    """Append one usage reading (Arduino-friendly)."""
+    ensure_sink(sink_id, sink_name, location)
+    when = at.astimezone(UTC) if at is not None else datetime.now(tz=UTC)
+    ev = WasteEvent(
+        id=str(uuid4()),
+        sink_id=sink_id,
+        at=when,
+        volume_ml=round(float(volume_ml), 2),
+    )
+    _EVENTS.append(ev)
+    return ev
 
 
 def _events_in_range(
@@ -131,7 +150,13 @@ def daily_series(events: Sequence[WasteEvent], start_d: date, end_d: date) -> Li
     return out
 
 
-def recent_events_for_sink(sink_id: str, limit: int = 50) -> List[WasteEvent]:
-    mine = [e for e in _EVENTS if e.sink_id == sink_id]
+def recent_events_in_period(
+    sink_id: str,
+    start_d: date,
+    end_d: date,
+    limit: int = 50,
+) -> List[WasteEvent]:
+    _, _, start_dt, end_dt = period_bounds(start_d, end_d, default_days=30)
+    mine = _events_in_range(_EVENTS, start_dt, end_dt, sink_id=sink_id)
     mine.sort(key=lambda x: x.at, reverse=True)
     return mine[:limit]

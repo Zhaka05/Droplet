@@ -3,9 +3,39 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, Query
 
 from app import mock_store as store
-from app.schemas import SinkDetailResponse, SinkListResponse, SinkSummary, WasteSummaryResponse
+from app.schemas import (
+    SinkDetailResponse,
+    SinkListResponse,
+    SinkSummary,
+    WasteIngestRequest,
+    WasteIngestResponse,
+    WasteSummaryResponse,
+)
 
 router = APIRouter(prefix="/api", tags=["waste"])
+
+
+@router.post("/waste/events", response_model=WasteIngestResponse)
+def ingest_waste_event(body: WasteIngestRequest) -> WasteIngestResponse:
+    """Receive one approximate waste reading.
+
+    For hardware on a **USB cable** to the same PC as the API, use the local bridge
+    ``scripts/serial_to_api.py`` (reads Serial lines, POSTs here to ``127.0.0.1``).
+    """
+    ml = body.volume_ml if body.volume_ml is not None else (body.volume_l or 0) * 1000.0
+    ev = store.add_waste_event(
+        sink_id=body.sink_id,
+        volume_ml=ml,
+        at=body.at,
+        sink_name=body.sink_name,
+        location=body.location,
+    )
+    return WasteIngestResponse(
+        id=ev.id,
+        sink_id=ev.sink_id,
+        at=ev.at,
+        volume_ml=ev.volume_ml,
+    )
 
 
 @router.get("/waste/summary", response_model=WasteSummaryResponse)
@@ -14,7 +44,6 @@ def waste_summary(
     end: date | None = Query(None, description="Period end (inclusive), ISO date"),
     days: int = Query(30, ge=1, le=366, description="If start/end omitted, last N days ending today"),
 ) -> WasteSummaryResponse:
-    """Overall wasted water for all sinks, with per-day breakdown for charts."""
     s, e, ev = store.all_events_in_period(start, end, default_days=days)
     total = sum(x.volume_ml for x in ev)
     by_day = store.daily_series(ev, s, e)
@@ -32,7 +61,6 @@ def list_sinks(
     end: date | None = Query(None),
     days: int = Query(30, ge=1, le=366),
 ) -> SinkListResponse:
-    """All sinks with total waste in the period (for the sink list screen)."""
     s, e, ev_all = store.all_events_in_period(start, end, default_days=days)
     by_sink: dict[str, float] = {}
     for ev in ev_all:
@@ -56,15 +84,13 @@ def sink_detail(
     end: date | None = Query(None),
     days: int = Query(30, ge=1, le=366),
 ) -> SinkDetailResponse:
-    """One sink: totals, daily series, and recent usage events."""
     base = store.get_sink(sink_id)
     if base is None:
         raise HTTPException(status_code=404, detail="Sink not found")
     s, e, ev = store.all_events_in_period(start, end, default_days=days, sink_id=sink_id)
     total = sum(x.volume_ml for x in ev)
     by_day = store.daily_series(ev, s, e)
-    recent = store.recent_events_for_sink(sink_id, limit=40)
-    recent = [x for x in recent if s <= x.at.date() <= e]
+    recent = store.recent_events_in_period(sink_id, s, e, limit=60)
     return SinkDetailResponse(
         id=base.id,
         name=base.name,
@@ -73,5 +99,5 @@ def sink_detail(
         period_end=e,
         total_volume_ml=round(total, 1),
         by_day=by_day,
-        recent_events=sorted(recent, key=lambda x: x.at, reverse=True),
+        recent_events=recent,
     )
