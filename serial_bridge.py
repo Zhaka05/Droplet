@@ -8,7 +8,7 @@ import serial.tools.list_ports
 # Run this to list available ports and find your Arduino:
 #   python -m serial.tools.list_ports --verbose
 # It will show up as "USB Serial Device (COMx)" or "Arduino Uno (COMx)".
-SERIAL_PORT = "COM4"   # Arduino Uno detected on COM4
+SERIAL_PORT = "/dev/cu.usbmodem101"   # Arduino Uno detected on COM4
 BAUD_RATE = 9600
 
 # ── Backend ───────────────────────────────────────────────────────────────────
