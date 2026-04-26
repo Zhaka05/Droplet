@@ -1,5 +1,5 @@
 # Youtube Demo
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/ /0.jpg)](https://www.youtube.com/watch?v=aSRYkWlZNCY)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/aSRYkWlZNCY/0.jpg)](https://www.youtube.com/watch?v=aSRYkWlZNCY)
 
 # 💧 Droplet
 
