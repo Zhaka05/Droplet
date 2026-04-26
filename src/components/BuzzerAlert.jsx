@@ -1,4 +1,4 @@
-export default function BuzzerAlert({ onDismiss }) {
+export default function BuzzerAlert({ onDismiss, secondsThreshold = 60 }) {
   return (
     <div style={styles.overlay}>
       <div style={styles.card}>
@@ -6,7 +6,9 @@ export default function BuzzerAlert({ onDismiss }) {
           <span style={styles.icon}>🚨</span>
         </div>
         <h2 style={styles.title}>Water Waste Alert!</h2>
-        <p style={styles.sub}>Water has been running for over 60 seconds.</p>
+        <p style={styles.sub}>
+          Water has been running for over {secondsThreshold} second{secondsThreshold === 1 ? '' : 's'}.
+        </p>
         <p style={styles.msg}>
           Turn off the tap to save water and protect the environment.
         </p>

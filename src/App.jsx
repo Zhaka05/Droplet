@@ -39,7 +39,9 @@ export default function App() {
             <Page />
           </div>
           <NavBar active={tab} onChange={setTab} />
-          {sensor.buzzerActive && <BuzzerAlert onDismiss={sensor.dismissBuzzer} />}
+          {sensor.buzzerActive && (
+            <BuzzerAlert onDismiss={sensor.dismissBuzzer} secondsThreshold={sensor.BUZZER_THRESHOLD} />
+          )}
         </div>
       </SensorContext.Provider>
     </UserContext.Provider>

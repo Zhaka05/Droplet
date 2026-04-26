@@ -2,9 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 
 // Flow rates from circuit diagram (GPM)
 export const FLOW_RATES = { low: 0.5, medium: 1.5, high: 2.2 }
-export const BUZZER_THRESHOLD = 60
 
-const WS_URL = 'ws://localhost:8000/ws'
+const _bt = Number.parseInt(String(import.meta.env.VITE_BUZZER_THRESHOLD ?? ''), 10)
+export const BUZZER_THRESHOLD =
+  Number.isFinite(_bt) && _bt > 0 ? _bt : 60
+
+const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws'
 
 function capitalize(s) {
   if (!s || s === 'none') return 'Off'

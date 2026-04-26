@@ -63,8 +63,10 @@ Droplet/
 │       ├── DevicesPage.jsx  # Sensor management, probe visualizer, simulator
 │       └── ProfilePage.jsx  # User profile, stats, settings
 │
+├── e2e/                      # Playwright end-to-end specs
 ├── serial_bridge.py         # Python — Arduino → backend bridge
 ├── index.html               # HTML shell
+├── playwright.config.js     # Playwright test + dev server
 ├── vite.config.js           # Vite + React plugin config
 └── package.json
 ```
@@ -133,6 +135,36 @@ python serial_bridge.py
 # Terminal 4 — open the app
 # Visit http://localhost:5173
 ```
+
+---
+
+## Testing
+
+### End-to-end (Playwright)
+
+Specs are in `e2e/`. They run the app in a real browser. Playwright can start the Vite dev server for you; see `playwright.config.js`. If you already have `npm run dev` on port 5173, a local run may reuse that process when the `CI` environment variable is not set.
+
+From the **project root** (after `npm install`):
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+Use `npm run test:e2e:ui` for Playwright’s interactive UI. Flows that only use client-side state (for example, the daily limit) do not require the Python backend to be running.
+
+The Playwright `webServer` uses `VITE_WS_URL` (a port with no server) and `VITE_BUZZER_THRESHOLD=3` so the Devices simulator stays available and the water-waste alert does not need a 60-second wait. If you reuse a manually started `npm run dev` (no `CI`), point it at the same env vars or let Playwright start Vite so e2e stays consistent.
+
+### Backend (pytest)
+
+API and WebSocket tests use pytest from the `backend` folder:
+
+```bash
+cd backend
+pytest
+```
+
+(Requires the same `pip install -r requirements.txt` as the backend above.)
 
 ---
 
