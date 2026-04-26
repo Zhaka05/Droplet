@@ -1,3 +1,6 @@
+# Youtube Demo
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/ /0.jpg)](https://www.youtube.com/watch?v=aSRYkWlZNCY)
+
 # 💧 Droplet
 
 A real-time water waste tracking app paired with a custom Arduino drain sensor. Droplet measures how much water goes down the drain during each use, tracks it against a daily limit, and alerts you when you've been running water too long.
