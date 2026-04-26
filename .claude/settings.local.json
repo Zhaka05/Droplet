@@ -9,7 +9,8 @@
       "Bash(curl -s http://localhost:5173)",
       "Bash(py --version)",
       "Bash(pip install *)",
-      "Bash(timeout 4 python -m uvicorn main:app --port 8000)"
+      "Bash(timeout 4 python -m uvicorn main:app --port 8000)",
+      "Bash(chmod -R +x /Users/zhansenshingis/Droplet/node_modules/.bin/)"
     ]
   }
 }
